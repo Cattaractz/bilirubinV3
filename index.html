@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilirubin Pro Suite</title>
+    <link rel="stylesheet" href="bilirubin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-tabs">
+        <div class="nav-item active" onclick="switchTab(this, 'nomogram')">Bilirubinkurve (Graf)</div>
+        <div class="nav-item" onclick="switchTab(this, 'rebound')">Langvarig gulsot (Ukonjugert)</div>
+    </div>
+
+    <div class="header-main">
+        <div class="header-left"></div> <h2 id="view-title">Nomogram Kalkulator (0-14 dager)</h2>
+
+        <div class="header-tools">
+    <div class="age-calculator-wrapper">
+        <button type="button" class="age-open-btn" onclick="toggleAgePopup(event)">
+            <i class="fa-solid fa-clock"></i> Beregn alder
+        </button>
+        
+        <div id="age-popup" class="age-popup-box">
+    <div class="age-popup-content">
+        <span class="close-age-popup" onclick="closeAgePopup()">&times;</span>
+        
+        <h4>Før inn fødselsdato og time</h4>
+    
+        
+        <div class="input-pill-group">
+            <input type="text" 
+                   id="birth_date_input" 
+                   class="pill-input date-input" 
+                   placeholder="DD.MM" 
+                   maxlength="5" 
+                   inputmode="numeric"> 
+
+            <input type="text" 
+                   id="birth_time_input" 
+                   class="pill-input time-input" 
+                   placeholder="HH:MM" 
+                   maxlength="5" 
+                   inputmode="numeric">
+        </div>
+
+        <h4>Før inn dato og tisdspunkt for prøve</h4>
+
+        <div class="input-pill-group">
+            <input type="text" 
+                   id="test_date_input" 
+                   class="pill-input date-input" 
+                   placeholder="DD.MM" 
+                   maxlength="5" 
+                   inputmode="numeric"> 
+
+            <input type="text" 
+                   id="test_time_input" 
+                   class="pill-input time-input" 
+                   placeholder="HH:MM" 
+                   maxlength="5" 
+                   inputmode="numeric">
+        </div>
+        
+        <div class="live-preview-display">
+            <span id="live_age_val" title="Klikk for å kopiere tall">-- timer</span>
+        </div>
+        
+        <p class="age-hint">Viser minimum alder basert på valgene dine.</p>
+
+        <button type="button" id="reset_age_btn" class="age-reset-btn">Nullstill</button>
+    </div>
+</div>
+    </div>
+
+    <div class="tooltip">
+        <button id="feedbackBtn" title="Meld om feil" onclick="sendFeedback()"><i class="fa-solid fa-bug"></i></button>
+        <span class="tooltiptext">Oppdaget en feil, gi meg beskjed</span>
+    </div>
+
+    
+
+    <button id="infobutton" onclick="openInfoModal()"><i class="fa-solid fa-info"></i></button> 
+</div>
+    </div>
+    
+
+
+    <div id="view-nomogram" class="view-section active">
+        <div class="input-section">
+            <div class="input-block">
+                <h3>Pasientdata</h3>              
+                <div class="toggle-container">
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-input">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Auto-velg kurve fra FV/GA</span>
+                </div>
+                <div id="auto-input-fields" class="input-grid" style="display: none;">
+                    <div class="field"><label>Fødselsvekt (g)</label><input type="number" id="weight_input" inputmode="numeric" maxlength="4"></div>
+                    <div class="field"><label>Gestasjonsalder (Uker)</label><input type="number" id="ga_input" inputmode="numeric" maxlength="2"></div>
+                </div>
+                <div id="manual-input-fields" style="display: block;">
+                    <div class="field">
+                        <label>Velg Kurve Manuelt</label>
+                    <select id="riskLine" class="styled-select">
+                        <option value="red" style="color: #ff4d4d">Rød (>2500g, GA≥38)</option>
+                        <option value="pink" style="color: #ff4da6">Rosa (>2500g og 34-37 uker)</option>
+                        <option value="blue" style="color: #3b4fc2">Blå (1500-2500g)</option>
+                        <option value="cyan" style="color: cyan">Cyan (1000-1500g)</option>
+                        <option value="green" style="color: green">Grønn (&lt;1000g)</option>
+                    </select>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="input-block">
+                <h3>Målinger</h3>
+                <div class="input-grid">
+                    <div class="input-card">
+                        <div class="card-header">Måling 1</div>
+                        <div class="measurement-row">
+                            <div class="field">
+                                <label>Alder (Timer)</label>
+                                <input type="number" id="t1" placeholder="f.eks. 24">
+                            </div>
+                            <div class="field">
+                                <label>Verdi (µmol/L)</label>
+                                <input type="number" id="v1" placeholder="f.eks. 150">
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <div class="input-card">
+                        <div class="card-header">Måling 2 (Valgfri)</div>
+                        <div class="measurement-row">
+                            <div class="field">
+                                <label>Alder (Timer)</label>
+                                <input type="number" id="t2" placeholder="f.eks. 48">
+                            </div>
+                            <div class="field">
+                                <label>Verdi (µmol/L)</label>
+                                <input type="number" id="v2" placeholder="f.eks. 220">
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+            <div class="warning-container">
+                <div id="age-warning" class="age-warning-box">
+                <i class="fa-solid fa-triangle-exclamation"></i> 
+                Barnet er over 10 dager. Bruk aktuell vekt og postmenstruell alder.
+                </div>
+            </div>
+    
+
+        <div class="action-block">
+            <button class="calc-btn" onclick="calculateBilirubin()">Beregn Resultat</button>
+            <button class="calc-btn secondary" onclick="resetForm()">Nullstill</button>
+        </div>
+
+        <div id="result-box" class="result-box"></div>
+
+        <div class="chart-container">
+            <canvas id="bilirubinChart"></canvas>
+        </div>
+    </div>
+
+
+    <!-- Nedenfor er koden for Langvarig gulsot kalkulator. -->
+
+    <div id="view-rebound" class="view-section">
+        
+
+        <div class="rebound-grid">
+            <div class="input-block">
+                <h3>Prøve 1</h3>
+                <label>Dato og klokkeslett</label>
+                <input type="datetime-local" id="r_d1" class="rebound-input">
+                <label>Bilirubin (µmol/L)</label>
+                <input type="number" id="r_v1" placeholder="f.eks. 100" class="rebound-input">
+            </div>
+
+            <div class="input-block">
+                <h3>2. Toppverdi (Før lysbehandling)</h3>
+                <label>Dato og klokkeslett</label>
+                <input type="datetime-local" id="r_d2" class="rebound-input">
+                <label>Bilirubin (µmol/L)</label>
+                <input type="number" id="r_v2" placeholder="f.eks. 200" class="rebound-input">
+            </div>
+
+            <div class="input-block">
+                <h3>3. Kontroll (Etter lysbehandling)</h3>
+                <label>Dato og klokkeslett</label>
+                <input type="datetime-local" id="r_d3" class="rebound-input">
+                <label>Bilirubin (µmol/L)</label>
+                <input type="number" id="r_v3" placeholder="f.eks. 150" class="rebound-input">
+            </div>
+        </div>
+
+        <div class="limit-container">
+            <div class="input-block" style="max-width: 400px; margin: 0 auto; border-color: #af8f02;">
+                <h3 style="color: #af8f02;">Behandlingsgrense</h3>
+                <label>Velg lysgrense (µmol/L)</label>
+                <select id="r_limit" class="styled-select" style="text-align: center; margin-top: 10px;">
+                    <option value="350">350 µmol/L</option>
+                    <option value="300">300 µmol/L</option>
+                    <option value="250">250 µmol/L</option>
+                    <option value="200">200 µmol/L</option>
+                    <option value="150">150 µmol/L</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="action-block">
+            <button class="calc-btn" onclick="calcRebound()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Beregn Tidspunkt
+        </button>
+            <button class="calc-btn secondary" onclick="clearRebound()" style="margin-left: 10px;">Nullstill</button>
+        </div>
+
+        <div id="res-rebound" class="result-box"></div>
+    </div>
+
+    <div id="feedbackModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeFeedbackModal()"><i class="fa-solid fa-xmark"></i></span>
+        <h2>Feilrapport</h2>
+        <p style="margin-top: 10px; font-size: 14px;">
+            Kopier teksten under og send den til <b>dev@pediateren.no</b>. <br>
+            <i>(Du kan gjerne legge til din egen kommentar øverst i teksten før du sender).</i>
+        </p>
+        
+        <textarea id="feedbackTextarea" style="width: 100%; height: 250px; margin-top: 15px; padding: 10px; font-family: monospace; font-size: 13px; border: 1px solid #ccc; border-radius: 5px; resize: vertical;"></textarea>
+        
+        <button id="copyFeedbackBtn" class="menu-btn" style="width: 100%; margin-top: 15px; background: #e74c3c; color: white;" onclick="copyFeedbackText()">
+            <i class="fa-solid fa-copy"></i> Kopier tekst til utklippstavle
+        </button>
+    </div>
+</div>
+
+<div id="info-text" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeInfModal()"><i class="fa-solid fa-xmark"></i></span>
+            <div id="info-content" style="text-align: left; line-height: 1.6;">
+            </div>
+        
+    </div>
+    </div>
+
+
+<script src="oppdatert.js"></script>
+</body>
+</html>
